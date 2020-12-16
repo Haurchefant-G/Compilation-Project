@@ -108,6 +108,13 @@ public class CParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implement
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitParameterDeclarationClause(CParser.ParameterDeclarationClauseContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitParameterDeclarationList(CParser.ParameterDeclarationListContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}

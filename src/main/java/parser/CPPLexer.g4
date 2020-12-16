@@ -169,6 +169,8 @@ Semi: ';';
 
 Dot: '.';
 
+Ellipsis: '...';
+
 /*Literal*/
 IntegerLiteral:
 	DecimalLiteral

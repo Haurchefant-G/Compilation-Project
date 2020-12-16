@@ -138,6 +138,16 @@ public interface CParserListener extends ParseTreeListener {
 	 */
 	void exitParametersAndQualifiers(CParser.ParametersAndQualifiersContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link CParser#parameterDeclarationClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterParameterDeclarationClause(CParser.ParameterDeclarationClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CParser#parameterDeclarationClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitParameterDeclarationClause(CParser.ParameterDeclarationClauseContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link CParser#parameterDeclarationList}.
 	 * @param ctx the parse tree
 	 */

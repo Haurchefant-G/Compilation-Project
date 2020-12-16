@@ -57,7 +57,10 @@ pointerOperator:
 declaratorid: Identifier;
 
 parametersAndQualifiers:
-	LeftParen parameterDeclarationList? RightParen;
+	LeftParen parameterDeclarationClause? RightParen;
+
+parameterDeclarationClause:
+	parameterDeclarationList (Comma? Ellipsis)?;
 
 parameterDeclarationList:
 	parameterDeclaration (Comma parameterDeclaration)*;

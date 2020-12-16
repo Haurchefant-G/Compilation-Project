@@ -89,6 +89,12 @@ public interface CParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitParametersAndQualifiers(CParser.ParametersAndQualifiersContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link CParser#parameterDeclarationClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParameterDeclarationClause(CParser.ParameterDeclarationClauseContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link CParser#parameterDeclarationList}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

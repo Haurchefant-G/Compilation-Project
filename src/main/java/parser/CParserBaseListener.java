@@ -172,6 +172,18 @@ public class CParserBaseListener implements CParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterParameterDeclarationClause(CParser.ParameterDeclarationClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitParameterDeclarationClause(CParser.ParameterDeclarationClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterParameterDeclarationList(CParser.ParameterDeclarationListContext ctx) { }
 	/**
 	 * {@inheritDoc}
