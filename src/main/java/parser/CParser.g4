@@ -33,9 +33,6 @@ simpleTypeSpecifier:
 	| Void
 	| Auto;
 
-declSpecifierSeq:
-	simpleTypeSpecifier;
-
 initDeclaratorList: initDeclarator (Comma initDeclarator)*;
 
 initDeclarator: declarator initializer?;
@@ -57,7 +54,7 @@ noPointerDeclarator:
 pointerOperator:
 	And | Star;
 
-declaratorid: idExpression;
+declaratorid: Identifier;
 
 parametersAndQualifiers:
 	LeftParen parameterDeclarationList? RightParen;
@@ -68,11 +65,12 @@ parameterDeclarationList:
 parameterDeclaration:
 	simpleTypeSpecifier declarator (Assign initializerClause)?;
 
-initializer:
-	equalInitializer;
-	// | LeftParen expressionList RightParen;
+// initializer:
+// 	equalInitializer;
+// 	// | LeftParen expressionList RightParen;
 
-equalInitializer:
+// equalInitializer:
+initializer:
 	Assign initializerClause;
 
 initializerClause: assignmentExpression | bracedInitList;
@@ -88,11 +86,7 @@ bracedInitList: LeftBrace (initializerList Comma?)? RightBrace;
 primaryExpression:
 	literal
 	| LeftParen expression RightParen
-	| idExpression;
-
-idExpression: unqualifiedId;
-
-unqualifiedId: Identifier;
+	| Identifier;
 
 postfixExpression:
 	primaryExpression
@@ -180,19 +174,17 @@ expression: assignmentExpression (Comma assignmentExpression)*;
 constantExpression: conditionalExpression;
 
 functionDefinition: 
-	declSpecifierSeq declarator compoundStatement;
+	simpleTypeSpecifier declarator compoundStatement;
 
 statementSeq: statement+;
 
 statement:
 	labeledStatement
-	| (
-		expressionStatement
-		| compoundStatement
-		| selectionStatement
-		| iterationStatement
-		| jumpStatement
-	)
+	| expressionStatement
+	| compoundStatement
+	| selectionStatement
+	| iterationStatement
+	| jumpStatement
 	| declarationStatement;
 
 labeledStatement:
@@ -220,7 +212,7 @@ declarationStatement: simpleDeclaration;
 
 condition:
 	expression;
-	// | declSpecifierSeq declarator (
+	// | simpleTypeSpecifier declarator (
 	// 	Assign initializerClause
 	// 	| bracedInitList
 	// );

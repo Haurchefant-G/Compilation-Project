@@ -40,7 +40,6 @@ For: 'for';
 
 If: 'if';
 
-
 Int: 'int';
 
 Long: 'long';
@@ -172,21 +171,20 @@ Dot: '.';
 
 /*Literal*/
 IntegerLiteral:
-	DecimalLiteral Integersuffix?
-	| OctalLiteral Integersuffix?
-	| HexadecimalLiteral Integersuffix?
-	| BinaryLiteral Integersuffix?;
+	DecimalLiteral
+	| OctalLiteral
+	| HexadecimalLiteral
+	| BinaryLiteral;
 
 CharacterLiteral:
-	('u' | 'U' | 'L')? '\'' Cchar+ '\'';
+	'\'' Cchar+ '\'';
 
 FloatingLiteral:
-	Fractionalconstant Exponentpart? Floatingsuffix?
-	| Digitsequence Exponentpart Floatingsuffix?;
+	Fractionalconstant Exponentpart?
+	| Digitsequence Exponentpart;
 
 StringLiteral:
-	Encodingprefix? '"' Schar* '"'
-	| Encodingprefix? 'R' Rawstring;
+	'"' Schar* '"';
 
 BooleanLiteral: False_ | True_;
 
@@ -241,18 +239,6 @@ fragment HEXADECIMALDIGIT: [0-9a-fA-F];
 
 fragment BINARYDIGIT: [01];
 
-Integersuffix:
-	Unsignedsuffix Longsuffix?
-	| Unsignedsuffix Longlongsuffix?
-	| Longsuffix Unsignedsuffix?
-	| Longlongsuffix Unsignedsuffix?;
-
-fragment Unsignedsuffix: [uU];
-
-fragment Longsuffix: [lL];
-
-fragment Longlongsuffix: 'll' | 'LL';
-
 fragment Cchar:
 	~ ['\\\r\n]
 	| Escapesequence
@@ -294,27 +280,16 @@ fragment SIGN: [+-];
 
 fragment Digitsequence: DIGIT ('\''? DIGIT)*;
 
-fragment Floatingsuffix: [flFL];
-
-fragment Encodingprefix: 'u8' | 'u' | 'U' | 'L';
 
 fragment Schar:
 	~ ["\\\r\n]
 	| Escapesequence
 	| Universalcharactername;
-fragment Rawstring: '"' ~[\r\n(]* '(' ~[\r\n)]* ')' ~[\r\n"]* '"';
-//UserDefinedIntegerLiteral:
-//	DecimalLiteral Udsuffix
-//	| OctalLiteral Udsuffix
-//	| HexadecimalLiteral Udsuffix
-//	| BinaryLiteral Udsuffix;
-//UserDefinedFloatingLiteral:
-//	Fractionalconstant Exponentpart? Udsuffix
-//	| Digitsequence Exponentpart Udsuffix;
-//UserDefinedStringLiteral: StringLiteral Udsuffix;
-//UserDefinedCharacterLiteral: CharacterLiteral Udsuffix;
-//fragment Udsuffix: Identifier;
+
 Whitespace: [ \t]+ -> skip;
+
 Newline: ('\r' '\n'? | '\n') -> skip;
+
 BlockComment: '/*' .*? '*/' -> skip;
+
 LineComment: '//' ~ [\r\n]* -> skip;
