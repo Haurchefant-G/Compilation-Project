@@ -1,5 +1,5 @@
-int strlen(const char* s);
-int printf(const char *format,...);
+int strlen(char* s);
+int printf(char *format,...);
 
 int stackData[5000 * 2];
 int stackNo = 0;

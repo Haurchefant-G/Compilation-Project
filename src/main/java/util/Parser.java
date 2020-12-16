@@ -14,7 +14,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
 
     @Override
     public Integer visitDeclarationseq(CParser.DeclarationseqContext ctx) {
-        for (CParser.DeclarationContext i:ctx.declaration()) {
+        for (CParser.DeclarationContext i: ctx.declaration()) {
             i.getChild(0).accept(this);
         }
         return super.visitDeclarationseq(ctx);
