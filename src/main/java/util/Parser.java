@@ -30,7 +30,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
     @Override
     public Integer visitDeclarationseq(CParser.DeclarationseqContext ctx) {
         for (CParser.DeclarationContext i: ctx.declaration()) {
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -63,7 +63,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
             // --------------------所有的simpleTypeSpecifier都转为let------------------
             if (ctx.simpleTypeSpecifier() != null)
             {
-                writer.append("let");
+                writer.append("let ");
             }
             if (ctx.initDeclaratorList() != null)
             {
@@ -88,7 +88,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about InitDeclaratorList");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -96,14 +96,9 @@ public class Parser extends CParserBaseVisitor<Integer> {
     @Override
     public Integer visitInitDeclarator(CParser.InitDeclaratorContext ctx) {
         ctx.declarator().accept(this);
-        try {
-            writer.append(" ");
-        }catch (IOException e){
-            System.out.print("Exception about initDecalarator");
-        }
         if( ctx.initializer() != null)
         {
-            return ctx.initializer().accept(this);
+           ctx.initializer().accept(this);
         }
         return 0;
     }
@@ -112,7 +107,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
     public Integer visitDeclarator(CParser.DeclaratorContext ctx) {
         for (CParser.PointerOperatorContext i: ctx.pointerOperator())
         {
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         ctx.noPointerDeclarator().accept(this);
         return 0;
@@ -129,7 +124,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
             ctx.noPointerDeclarator().accept(this);
             if (ctx.parametersAndQualifiers() != null)
             {
-                return ctx.parametersAndQualifiers().accept(this);
+                ctx.parametersAndQualifiers().accept(this);
             }
             else
             {
@@ -139,7 +134,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     {
                         ctx.constantExpression().accept(this);
                     }
-                    writer.append("]");
+                    writer.append("] ");
                 }catch (IOException e){
                     System.out.print("Exception about noPointerOperator");
                 }
@@ -217,7 +212,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about parameterDeclarationList");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -274,7 +269,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about InitializerList");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -312,7 +307,11 @@ public class Parser extends CParserBaseVisitor<Integer> {
         }
         else if (ctx.Identifier() != null)
         {
-            ctx.Identifier().accept(this);
+            try {
+                writer.append(ctx.Identifier().getText());
+            }catch (IOException e){
+                System.out.print("Exception about Declaratorid");
+            }
         }
         return 0;
     }
@@ -331,12 +330,15 @@ public class Parser extends CParserBaseVisitor<Integer> {
                 {
                     writer.append("[");
                     ctx.expression().accept(this);
-                    writer.append("]");
+                    writer.append("] ");
                 }
                 else if (ctx.LeftParen() != null)
                 {
                     writer.append("(");
-                    ctx.expressionList().accept(this);
+                    if (ctx.expressionList() != null)
+                    {
+                        ctx.expressionList().accept(this);
+                    }
                     writer.append(")");
                 }
                 else if (ctx.PlusPlus() != null)
@@ -453,7 +455,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about multiplicativeExpression");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -477,7 +479,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about additiveExpression");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -493,7 +495,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     j.getChild(0).accept(this);
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -542,7 +544,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about equalityExpression");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -566,7 +568,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about equalityExpression");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -583,7 +585,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about logicalAndExpression");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -600,14 +602,26 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about logicalOrExpression");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
 
-    // ----------------------------------待完成------------------------------------
     @Override
     public Integer visitConditionalExpression(CParser.ConditionalExpressionContext ctx) {
+        ctx.logicalOrExpression().accept(this);
+        if (ctx.Question() != null)
+        {
+            // ------------------三元表达式--------------------
+            try {
+                writer.append("? ");
+                ctx.expression().accept(this);
+                writer.append(": ");
+                ctx.assignmentExpression().accept(this);
+            }catch (IOException e){
+                System.out.print("Exception about logicalOrExpression");
+            }
+        }
         return 0;
     }
 
@@ -691,7 +705,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     System.out.print("Exception about visitExpression");
                 }
             }
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -707,7 +721,9 @@ public class Parser extends CParserBaseVisitor<Integer> {
         try {
             writer.append("function ");
             ctx.declarator().accept(this);
+            writer.append(" {\n");
             ctx.compoundStatement().accept(this);
+            writer.append("}\n");
         }catch (IOException e){
             System.out.print("Exception about FunctionDefinition");
         }
@@ -718,7 +734,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
     public Integer visitStatementSeq(CParser.StatementSeqContext ctx) {
         for (CParser.StatementContext i: ctx.statement())
         {
-            i.getChild(0).accept(this);
+            i.accept(this);
         }
         return 0;
     }
@@ -738,7 +754,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
             ctx.expression().accept(this);
         }
         try {
-            writer.append(";");
+            writer.append(";\n");
         } catch (IOException e){
             System.out.print("Exception about expressionStatement");
         }
@@ -747,12 +763,8 @@ public class Parser extends CParserBaseVisitor<Integer> {
 
     @Override
     public Integer visitCompoundStatement(CParser.CompoundStatementContext ctx) {
-        try {
-            writer.append("{\n");
+        if (ctx.statementSeq() != null) {
             ctx.statementSeq().accept(this);
-            writer.append("}\n");
-        } catch (IOException e){
-            System.out.print("Exception about CompoundStatement");
         }
         return 0;
     }
@@ -768,7 +780,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                 writer.append("{\n");
                 for (CParser.StatementContext i: ctx.statement())
                 {
-                    i.getChild(0).accept(this);
+                    i.accept(this);
                 }
                 writer.append("}\n");
                 if (ctx.Else() != null)
@@ -777,7 +789,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
                     writer.append("{\n");
                     for (CParser.StatementContext i: ctx.statement())
                     {
-                        i.getChild(0).accept(this);
+                        i.accept(this);
                     }
                     writer.append("}\n");
                 }
@@ -803,11 +815,11 @@ public class Parser extends CParserBaseVisitor<Integer> {
         {
             // for
             try {
-                writer.append("for (");
+                writer.append("\nfor (");
                 ctx.forInitStatement().accept(this);
-                writer.append(";");
+                writer.append(";\n");
                 ctx.condition().accept(this);
-                writer.append(";");
+                writer.append(";\n");
                 ctx.expression().accept(this);
                 writer.append(")\n");
                 writer.append("{\n");
@@ -821,7 +833,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
         {
             // while
             try {
-                writer.append("while (");
+                writer.append("\nwhile (");
                 ctx.condition().accept(this);
                 writer.append(")\n");
                 writer.append("{\n");
