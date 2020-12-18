@@ -774,23 +774,17 @@ public class Parser extends CParserBaseVisitor<Integer> {
         if (ctx.If() != null)
         {
             try {
-                writer.append("if(");
+                writer.append("if (");
                 ctx.condition().accept(this);
                 writer.append(")\n");
                 writer.append("{\n");
-                for (CParser.StatementContext i: ctx.statement())
-                {
-                    i.accept(this);
-                }
+                ctx.statement(0).accept(this);
                 writer.append("}\n");
                 if (ctx.Else() != null)
                 {
                     writer.append("else\n");
                     writer.append("{\n");
-                    for (CParser.StatementContext i: ctx.statement())
-                    {
-                        i.accept(this);
-                    }
+                    ctx.statement(1).accept(this);
                     writer.append("}\n");
                 }
             }catch (IOException e){
@@ -815,7 +809,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
         {
             // for
             try {
-                writer.append("\nfor (");
+                writer.append("for (");
                 ctx.forInitStatement().accept(this);
                 writer.append(";\n");
                 ctx.condition().accept(this);
@@ -833,7 +827,7 @@ public class Parser extends CParserBaseVisitor<Integer> {
         {
             // while
             try {
-                writer.append("\nwhile (");
+                writer.append("while (");
                 ctx.condition().accept(this);
                 writer.append(")\n");
                 writer.append("{\n");
