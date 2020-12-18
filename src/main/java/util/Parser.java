@@ -129,12 +129,13 @@ public class Parser extends CParserBaseVisitor<Integer> {
             else
             {
                 try {
-                    writer.append("[");
-                    if (ctx.constantExpression() != null)
-                    {
-                        ctx.constantExpression().accept(this);
-                    }
-                    writer.append("] ");
+//                    writer.append("[");
+//                    if (ctx.constantExpression() != null)
+//                    {
+//                        ctx.constantExpression().accept(this);
+//                    }
+//                    writer.append("] ");
+                    writer.append(" = new Array()");
                 }catch (IOException e){
                     System.out.print("Exception about noPointerOperator");
                 }
@@ -145,25 +146,36 @@ public class Parser extends CParserBaseVisitor<Integer> {
 
     @Override
     public Integer visitPointerOperator(CParser.PointerOperatorContext ctx) {
-        try {
-            if (ctx.And() != null)
-            {
-                writer.append("&");
-            }
-            else if (ctx.Star() != null)
-            {
-                writer.append("*");
-            }
-        }catch (IOException e){
-            System.out.print("Exception about pointerOperator");
-        }
+//        try {
+//            if (ctx.And() != null)
+//            {
+//                writer.append("&");
+//            }
+//            else if (ctx.Star() != null)
+//            {
+//                writer.append("*");
+//            }
+//        }catch (IOException e){
+//            System.out.print("Exception about pointerOperator");
+//        }
         return 0;
     }
 
     @Override
     public Integer visitDeclaratorid(CParser.DeclaratoridContext ctx) {
         try {
-            writer.append(ctx.Identifier().getText());
+            if(ctx.Identifier().getText().equals("printf"))
+            {
+                writer.append("alert");
+            }
+            else if (ctx.Identifier().getText().equals("scanf"))
+            {
+                writer.append("prompt");
+            }
+            else
+            {
+                writer.append(ctx.Identifier().getText());
+            }
         }catch (IOException e){
             System.out.print("Exception about Declaratorid");
         }
@@ -191,9 +203,12 @@ public class Parser extends CParserBaseVisitor<Integer> {
         try {
             if (ctx.Comma() != null)
             {
-                writer.append("this");
+                writer.append(",");
             }
-            // --------------------ellipsis这种东西真的要做嘛？----------------------------
+            else if (ctx.Ellipsis() != null)
+            {
+                writer.append("...");
+            }
         }catch (IOException e){
             System.out.print("Exception about parameterDeclarationClause");
         }
@@ -308,7 +323,18 @@ public class Parser extends CParserBaseVisitor<Integer> {
         else if (ctx.Identifier() != null)
         {
             try {
-                writer.append(ctx.Identifier().getText());
+                if(ctx.Identifier().getText().equals("printf"))
+                {
+                    writer.append("alert");
+                }
+                else if (ctx.Identifier().getText().equals("scanf"))
+                {
+                    writer.append("prompt");
+                }
+                else
+                {
+                    writer.append(ctx.Identifier().getText());
+                }
             }catch (IOException e){
                 System.out.print("Exception about Declaratorid");
             }
@@ -911,3 +937,4 @@ public class Parser extends CParserBaseVisitor<Integer> {
         return 0;
     }
 }
+s
