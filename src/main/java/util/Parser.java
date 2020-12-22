@@ -10,18 +10,19 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 
 // 重载CParserBaseVisitor中的函数
-public class Parser extends CParserBaseVisitor<Integer> {
+public class Parser extends CParserBaseVisitor<String> {
 	File f;
 	FileOutputStream fop;
 	OutputStreamWriter writer;
 
 	@Override
-	public Integer visitTranslationUnit(CParser.TranslationUnitContext ctx) {
+	public String visitTranslationUnit(CParser.TranslationUnitContext ctx) {
 		try {
 			f = new File("results.js");
 			fop = new FileOutputStream(f);
 			writer = new OutputStreamWriter(fop, StandardCharsets.UTF_8);
-			ctx.declarationseq().accept(this);
+			String translatedText = ctx.declarationseq().accept(this);
+			writer.append(translatedText);
 			writer.append("main();\n");
 			writer.close();
 			fop.close();
@@ -29,111 +30,108 @@ public class Parser extends CParserBaseVisitor<Integer> {
 			System.out.print("Exception");
 		}
 
-		return 0;
+		return "";
 	}
 
 	@Override
-	public Integer visitDeclarationseq(CParser.DeclarationseqContext ctx) {
+	public String visitDeclarationseq(CParser.DeclarationseqContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.DeclarationContext i : ctx.declaration()) {
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitDeclaration(CParser.DeclarationContext ctx) {
+	public String visitDeclaration(CParser.DeclarationContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.simpleDeclaration() != null) {
-			ctx.simpleDeclaration().accept(this);
+			result.append(ctx.simpleDeclaration().accept(this));
 		} else if (ctx.functionDefinition() != null) {
-			ctx.functionDefinition().accept(this);
+			result.append(ctx.functionDefinition().accept(this));
 		} else if (ctx.emptyDeclaration() != null) {
-			ctx.emptyDeclaration().accept(this);
+			result.append(ctx.emptyDeclaration().accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitEmptyDeclaration(CParser.EmptyDeclarationContext ctx) {
-		return 0;
+	public String visitEmptyDeclaration(CParser.EmptyDeclarationContext ctx) {
+		return "";
 	}
 
 	@Override
-	public Integer visitSimpleDeclaration(CParser.SimpleDeclarationContext ctx) {
-		try {
-			// --------------------所有的simpleTypeSpecifier都转为let------------------
-			if (ctx.simpleTypeSpecifier() != null) {
-				writer.append("let ");
-			}
-			if (ctx.initDeclaratorList() != null) {
-				ctx.initDeclaratorList().accept(this);
-			}
-			writer.append(";\n");
-		} catch (IOException e) {
-			System.out.print("Exception about SimpleDeclaration");
+	public String visitSimpleDeclaration(CParser.SimpleDeclarationContext ctx) {
+		StringBuilder result = new StringBuilder();
+		// --------------------所有的simpleTypeSpecifier都转为let------------------
+		if (ctx.simpleTypeSpecifier() != null) {
+			// JavaScript中没有函数声明
+			result.append("let ");
 		}
-		return 0;
+		if (ctx.initDeclaratorList() != null) {
+			result.append(ctx.initDeclaratorList().accept(this));
+		}
+		result.append(";\n");
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitInitDeclaratorList(CParser.InitDeclaratorListContext ctx) {
+	public String visitInitDeclaratorList(CParser.InitDeclaratorListContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.InitDeclaratorContext i : ctx.initDeclarator()) {
 			if (ctx.initDeclarator().indexOf(i) != 0) {
-				try {
-					writer.append(", ");
-				} catch (IOException e) {
-					System.out.print("Exception about InitDeclaratorList");
-				}
+				result.append(", ");
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitInitDeclarator(CParser.InitDeclaratorContext ctx) {
-		ctx.declarator().accept(this);
+	public String visitInitDeclarator(CParser.InitDeclaratorContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append(ctx.declarator().accept(this));
 		if (ctx.initializer() != null) {
-			ctx.initializer().accept(this);
+			result.append(ctx.initializer().accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitDeclarator(CParser.DeclaratorContext ctx) {
+	public String visitDeclarator(CParser.DeclaratorContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.PointerOperatorContext i : ctx.pointerOperator()) {
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		ctx.noPointerDeclarator().accept(this);
-		return 0;
+		result.append(ctx.noPointerDeclarator().accept(this));
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitNoPointerDeclarator(CParser.NoPointerDeclaratorContext ctx) {
+	public String visitNoPointerDeclarator(CParser.NoPointerDeclaratorContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.declaratorid() != null) {
-			ctx.declaratorid().accept(this);
+			result.append(ctx.declaratorid().accept(this));
 		} else {
-			ctx.noPointerDeclarator().accept(this);
+			result.append(ctx.noPointerDeclarator().accept(this));
 			if (ctx.parametersAndQualifiers() != null) {
-				ctx.parametersAndQualifiers().accept(this);
+				result.append(ctx.parametersAndQualifiers().accept(this));
 			} else {
-				try {
-//                    writer.append("[");
-//                    if (ctx.constantExpression() != null)
-//                    {
-//                        ctx.constantExpression().accept(this);
-//                    }
-//                    writer.append("] ");
-					writer.append(" = new Array()");
-				} catch (IOException e) {
-					System.out.print("Exception about noPointerOperator");
-				}
+//                writer.append("[");
+//                if (ctx.constantExpression() != null)
+//                {
+//                    ctx.constantExpression().accept(this);
+//                }
+//                writer.append("] ");
+				result.append(" = new Array()");
 			}
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitPointerOperator(CParser.PointerOperatorContext ctx) {
+	public String visitPointerOperator(CParser.PointerOperatorContext ctx) {
+		StringBuilder result = new StringBuilder();
 //        try {
 //            if (ctx.And() != null)
 //            {
@@ -146,638 +144,558 @@ public class Parser extends CParserBaseVisitor<Integer> {
 //        }catch (IOException e){
 //            System.out.print("Exception about pointerOperator");
 //        }
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitDeclaratorid(CParser.DeclaratoridContext ctx) {
-		try {
-			if (ctx.Identifier().getText().equals("printf")) {
-				writer.append("alert");
-			} else if (ctx.Identifier().getText().equals("scanf")) {
-				writer.append("prompt");
-			} else {
-				writer.append(ctx.Identifier().getText());
-			}
-		} catch (IOException e) {
-			System.out.print("Exception about Declaratorid");
+	public String visitDeclaratorid(CParser.DeclaratoridContext ctx) {
+		StringBuilder result = new StringBuilder();
+		if (ctx.Identifier().getText().equals("printf")) {
+			result.append("alert");
+		} else if (ctx.Identifier().getText().equals("scanf")) {
+			result.append("prompt");
+		} else {
+			result.append(ctx.Identifier().getText());
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitParametersAndQualifiers(CParser.ParametersAndQualifiersContext ctx) {
-		try {
-			writer.append("(");
-			if (ctx.parameterDeclarationClause() != null) {
-				ctx.parameterDeclarationClause().accept(this);
-			}
-			writer.append(")");
-		} catch (IOException e) {
-			System.out.print("Exception about Declaratorid");
+	public String visitParametersAndQualifiers(CParser.ParametersAndQualifiersContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append("(");
+		if (ctx.parameterDeclarationClause() != null) {
+			result.append(ctx.parameterDeclarationClause().accept(this));
 		}
-		return 0;
+		result.append(")");
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitParameterDeclarationClause(CParser.ParameterDeclarationClauseContext ctx) {
-		ctx.parameterDeclarationList().accept(this);
-		try {
-			if (ctx.Comma() != null) {
-				writer.append(",");
-			} else if (ctx.Ellipsis() != null) {
-				writer.append("...");
-			}
-		} catch (IOException e) {
-			System.out.print("Exception about parameterDeclarationClause");
+	public String visitParameterDeclarationClause(CParser.ParameterDeclarationClauseContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append(ctx.parameterDeclarationList().accept(this));
+		if (ctx.Comma() != null && ctx.Ellipsis() == null) {
+			// 对于printf的声明，不处理逗号及其后的省略号这一特殊语法
+			result.append(",");
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitParameterDeclarationList(CParser.ParameterDeclarationListContext ctx) {
+	public String visitParameterDeclarationList(CParser.ParameterDeclarationListContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.ParameterDeclarationContext i : ctx.parameterDeclaration()) {
 			if (ctx.parameterDeclaration().indexOf(i) != 0) {
-				try {
-					writer.append(", ");
-				} catch (IOException e) {
-					System.out.print("Exception about parameterDeclarationList");
-				}
+				result.append(", ");
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitParameterDeclaration(CParser.ParameterDeclarationContext ctx) {
-		ctx.simpleTypeSpecifier().accept(this);
-		ctx.declarator().accept(this);
+	public String visitParameterDeclaration(CParser.ParameterDeclarationContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append(ctx.simpleTypeSpecifier().accept(this));
+		result.append(ctx.declarator().accept(this));
 		if (ctx.Assign() != null) {
-			try {
-				writer.append("= ");
-				ctx.initializerClause().accept(this);
-			} catch (IOException e) {
-				System.out.print("Exception about parameterDeclaration");
-			}
+			result.append("= ");
+			result.append(ctx.initializerClause().accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitInitializer(CParser.InitializerContext ctx) {
-		try {
-			writer.append("= ");
-			ctx.initializerClause().accept(this);
-		} catch (IOException e) {
-			System.out.print("Exception about Initilalizer");
-		}
-		return 0;
+	public String visitInitializer(CParser.InitializerContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append("= ");
+		result.append(ctx.initializerClause().accept(this));
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitInitializerClause(CParser.InitializerClauseContext ctx) {
+	public String visitInitializerClause(CParser.InitializerClauseContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.assignmentExpression() != null) {
-			ctx.assignmentExpression().accept(this);
+			result.append(ctx.assignmentExpression().accept(this));
 		} else if (ctx.bracedInitList() != null) {
-			ctx.bracedInitList().accept(this);
+			result.append(ctx.bracedInitList().accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitInitializerList(CParser.InitializerListContext ctx) {
+	public String visitInitializerList(CParser.InitializerListContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.InitializerClauseContext i : ctx.initializerClause()) {
 			if (ctx.initializerClause().indexOf(i) != 0) {
-				try {
-					writer.append(", ");
-				} catch (IOException e) {
-					System.out.print("Exception about InitializerList");
-				}
+				result.append(", ");
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitBracedInitList(CParser.BracedInitListContext ctx) {
-		try {
-			writer.append("{");
-			if (ctx.initializerList() != null) {
-				ctx.initializerList().accept(this);
-			}
-			writer.append("}");
-		} catch (IOException e) {
-			System.out.print("Exception about bracedInitList");
+	public String visitBracedInitList(CParser.BracedInitListContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append("{");
+		if (ctx.initializerList() != null) {
+			result.append(ctx.initializerList().accept(this));
 		}
-		return 0;
+		result.append("}");
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitPrimaryExpression(CParser.PrimaryExpressionContext ctx) {
+	public String visitPrimaryExpression(CParser.PrimaryExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.literal() != null) {
-			ctx.literal().accept(this);
+			result.append(ctx.literal().accept(this));
 		} else if (ctx.LeftParen() != null) {
-			try {
-				writer.append("(");
-				ctx.expression().accept(this);
-				writer.append(")");
-			} catch (IOException e) {
-				System.out.print("Exception about primaryExpression");
-			}
+			result.append("(");
+			result.append(ctx.expression().accept(this));
+			result.append(")");
 		} else if (ctx.Identifier() != null) {
-			try {
-				if (ctx.Identifier().getText().equals("printf")) {
-					writer.append("alert");
-				} else if (ctx.Identifier().getText().equals("scanf")) {
-					writer.append("prompt");
-				} else {
-					writer.append(ctx.Identifier().getText());
-				}
-			} catch (IOException e) {
-				System.out.print("Exception about Declaratorid");
+			String functionName = ctx.Identifier().getText();
+			switch (functionName) {
+				case "printf":
+					result.append("alert");
+					break;
+				case "scanf":
+					result.append("prompt");
+					break;
+				case "strlen":
+					// todo: 如何变为后置.length的形式？
+					result.append(functionName);
+					break;
+				default:
+					result.append(functionName);
+					break;
 			}
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitPostfixExpression(CParser.PostfixExpressionContext ctx) {
+	public String visitPostfixExpression(CParser.PostfixExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.primaryExpression() != null) {
-			ctx.primaryExpression().accept(this);
+			result.append(ctx.primaryExpression().accept(this));
 		} else {
-			ctx.postfixExpression().accept(this);
-			try {
-				if (ctx.LeftBracket() != null) {
-					writer.append("[");
-					ctx.expression().accept(this);
-					writer.append("] ");
-				} else if (ctx.LeftParen() != null) {
-					writer.append("(");
-					if (ctx.expressionList() != null) {
-						ctx.expressionList().accept(this);
-					}
-					writer.append(")");
-				} else if (ctx.PlusPlus() != null) {
-					writer.append("++");
-				} else if (ctx.MinusMinus() != null) {
-					writer.append("--");
+			result.append(ctx.postfixExpression().accept(this));
+			if (ctx.LeftBracket() != null) {
+				result.append("[");
+				result.append(ctx.expression().accept(this));
+				result.append("] ");
+			} else if (ctx.LeftParen() != null) {
+				result.append("(");
+				if (ctx.expressionList() != null) {
+					result.append(ctx.expressionList().accept(this));
 				}
-			} catch (IOException e) {
-				System.out.print("Exception about postfixExpression");
+				result.append(")");
+			} else if (ctx.PlusPlus() != null) {
+				result.append("++");
+			} else if (ctx.MinusMinus() != null) {
+				result.append("--");
 			}
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitExpressionList(CParser.ExpressionListContext ctx) {
-		ctx.initializerList().accept(this);
-		return 0;
+	public String visitExpressionList(CParser.ExpressionListContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append(ctx.initializerList().accept(this));
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitUnaryExpression(CParser.UnaryExpressionContext ctx) {
+	public String visitUnaryExpression(CParser.UnaryExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.postfixExpression() != null) {
-			ctx.postfixExpression().accept(this);
+			result.append(ctx.postfixExpression().accept(this));
 		} else {
-			try {
-				if (ctx.PlusPlus() != null) {
-					writer.append("++");
-				} else if (ctx.MinusMinus() != null) {
-					writer.append("--");
-				} else if (ctx.Sizeof() != null) {
-					// -----------------------sizeof对应什么？---------------------
-				} else if (ctx.unaryOperator() != null) {
-					ctx.unaryOperator().accept(this);
-				}
-				ctx.unaryExpression().accept(this);
-			} catch (IOException e) {
-				System.out.print("Exception about unaryExpression");
+			if (ctx.PlusPlus() != null) {
+				result.append("++");
+			} else if (ctx.MinusMinus() != null) {
+				result.append("--");
+			} else if (ctx.Sizeof() != null) {
+				// -----------------------sizeof对应什么？---------------------
+				result.append("");
+			} else if (ctx.unaryOperator() != null) {
+				result.append(ctx.unaryOperator().accept(this));
 			}
+			result.append(ctx.unaryExpression().accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitUnaryOperator(CParser.UnaryOperatorContext ctx) {
-		try {
-			if (ctx.Or() != null) {
-				writer.append("|");
-			} else if (ctx.Star() != null) {
-				writer.append("*");
-			} else if (ctx.And() != null) {
-				writer.append("&");
-			} else if (ctx.Plus() != null) {
-				writer.append("+");
-			} else if (ctx.Tilde() != null) {
-				writer.append("~");
-			} else if (ctx.Minus() != null) {
-				writer.append("-");
-			} else if (ctx.Not() != null) {
-				writer.append("!");
-			}
-		} catch (IOException e) {
-			System.out.print("Exception about unaryOperator");
+	public String visitUnaryOperator(CParser.UnaryOperatorContext ctx) {
+		StringBuilder result = new StringBuilder();
+		if (ctx.Or() != null) {
+			result.append("|");
+		} else if (ctx.Star() != null) {
+			result.append("*");
+		} else if (ctx.And() != null) {
+			result.append("&");
+		} else if (ctx.Plus() != null) {
+			result.append("+");
+		} else if (ctx.Tilde() != null) {
+			result.append("~");
+		} else if (ctx.Minus() != null) {
+			result.append("-");
+		} else if (ctx.Not() != null) {
+			result.append("!");
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitMultiplicativeExpression(CParser.MultiplicativeExpressionContext ctx) {
+	public String visitMultiplicativeExpression(CParser.MultiplicativeExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.UnaryExpressionContext i : ctx.unaryExpression()) {
 			if (ctx.unaryExpression().indexOf(i) != 0) {
-				try {
-					if (ctx.Star() != null) {
-						writer.append("*");
-					} else if (ctx.Div() != null) {
-						writer.append("/");
-					} else if (ctx.Mod() != null) {
-						writer.append("%");
-					}
-				} catch (IOException e) {
-					System.out.print("Exception about multiplicativeExpression");
+				if (ctx.Star() != null) {
+					result.append("*");
+				} else if (ctx.Div() != null) {
+					result.append("/");
+				} else if (ctx.Mod() != null) {
+					result.append("%");
 				}
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitAdditiveExpression(CParser.AdditiveExpressionContext ctx) {
+	public String visitAdditiveExpression(CParser.AdditiveExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.MultiplicativeExpressionContext i : ctx.multiplicativeExpression()) {
 			if (ctx.multiplicativeExpression().indexOf(i) != 0) {
-				try {
-					if (ctx.Plus() != null) {
-						writer.append("+");
-					} else if (ctx.Minus() != null) {
-						writer.append("-");
-					}
-				} catch (IOException e) {
-					System.out.print("Exception about additiveExpression");
+				if (ctx.Plus() != null) {
+					result.append("+");
+				} else if (ctx.Minus() != null) {
+					result.append("-");
 				}
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitShiftExpression(CParser.ShiftExpressionContext ctx) {
+	public String visitShiftExpression(CParser.ShiftExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.AdditiveExpressionContext i : ctx.additiveExpression()) {
 			if (ctx.additiveExpression().indexOf(i) != 0) {
 				for (CParser.ShiftOperatorContext j : ctx.shiftOperator()) {
-					j.getChild(0).accept(this);
+					result.append(j.getChild(0).accept(this));
 				}
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitShiftOperator(CParser.ShiftOperatorContext ctx) {
-		try {
-			if (ctx.Greater() != null) {
-				writer.append(">> ");
-			} else if (ctx.Less() != null) {
-				writer.append("<< ");
-			}
-		} catch (IOException e) {
-			System.out.print("Exception about shiftOperator");
+	public String visitShiftOperator(CParser.ShiftOperatorContext ctx) {
+		StringBuilder result = new StringBuilder();
+		if (ctx.Greater() != null) {
+			result.append(">> ");
+		} else if (ctx.Less() != null) {
+			result.append("<< ");
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitRelationalExpression(CParser.RelationalExpressionContext ctx) {
+	public String visitRelationalExpression(CParser.RelationalExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.ShiftExpressionContext i : ctx.shiftExpression()) {
 			if (ctx.shiftExpression().indexOf(i) != 0) {
-				try {
-					if (ctx.Less() != null) {
-						writer.append("< ");
-					} else if (ctx.Greater() != null) {
-						writer.append("> ");
-					} else if (ctx.LessEqual() != null) {
-						writer.append("<= ");
-					} else if (ctx.GreaterEqual() != null) {
-						writer.append(">= ");
-					}
-				} catch (IOException e) {
-					System.out.print("Exception about equalityExpression");
+				if (ctx.Less() != null) {
+					result.append("< ");
+				} else if (ctx.Greater() != null) {
+					result.append("> ");
+				} else if (ctx.LessEqual() != null) {
+					result.append("<= ");
+				} else if (ctx.GreaterEqual() != null) {
+					result.append(">= ");
 				}
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitEqualityExpression(CParser.EqualityExpressionContext ctx) {
+	public String visitEqualityExpression(CParser.EqualityExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.RelationalExpressionContext i : ctx.relationalExpression()) {
 			if (ctx.relationalExpression().indexOf(i) != 0) {
-				try {
-					if (ctx.Equal() != null) {
-						writer.append("== ");
-					} else if (ctx.NotEqual() != null) {
-						writer.append("!= ");
-					}
-				} catch (IOException e) {
-					System.out.print("Exception about equalityExpression");
+				if (ctx.Equal() != null) {
+					result.append("== ");
+				} else if (ctx.NotEqual() != null) {
+					result.append("!= ");
 				}
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitLogicalAndExpression(CParser.LogicalAndExpressionContext ctx) {
+	public String visitLogicalAndExpression(CParser.LogicalAndExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.EqualityExpressionContext i : ctx.equalityExpression()) {
 			if (ctx.equalityExpression().indexOf(i) != 0) {
-				try {
-					writer.append("&& ");
-				} catch (IOException e) {
-					System.out.print("Exception about logicalAndExpression");
-				}
+				result.append("&& ");
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitLogicalOrExpression(CParser.LogicalOrExpressionContext ctx) {
+	public String visitLogicalOrExpression(CParser.LogicalOrExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.LogicalAndExpressionContext i : ctx.logicalAndExpression()) {
 			if (ctx.logicalAndExpression().indexOf(i) != 0) {
-				try {
-					writer.append("|| ");
-				} catch (IOException e) {
-					System.out.print("Exception about logicalOrExpression");
-				}
+				result.append("|| ");
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitConditionalExpression(CParser.ConditionalExpressionContext ctx) {
-		ctx.logicalOrExpression().accept(this);
+	public String visitConditionalExpression(CParser.ConditionalExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append(ctx.logicalOrExpression().accept(this));
 		if (ctx.Question() != null) {
 			// ------------------三元表达式--------------------
-			try {
-				writer.append("? ");
-				ctx.expression().accept(this);
-				writer.append(": ");
-				ctx.assignmentExpression().accept(this);
-			} catch (IOException e) {
-				System.out.print("Exception about logicalOrExpression");
-			}
+			result.append("? ");
+			result.append(ctx.expression().accept(this));
+			result.append(": ");
+			result.append(ctx.assignmentExpression().accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitAssignmentExpression(CParser.AssignmentExpressionContext ctx) {
+	public String visitAssignmentExpression(CParser.AssignmentExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.conditionalExpression() != null) {
-			ctx.conditionalExpression().accept(this);
+			result.append(ctx.conditionalExpression().accept(this));
 		} else {
-			ctx.logicalOrExpression().accept(this);
-			ctx.assignmentOperator().accept(this);
-			ctx.initializerClause().accept(this);
+			result.append(ctx.logicalOrExpression().accept(this));
+			result.append(ctx.assignmentOperator().accept(this));
+			result.append(ctx.initializerClause().accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitAssignmentOperator(CParser.AssignmentOperatorContext ctx) {
-		try {
-			if (ctx.Assign() != null) {
-				writer.append("=");
-			} else if (ctx.StarAssign() != null) {
-				writer.append("*=");
-			} else if (ctx.DivAssign() != null) {
-				writer.append("/=");
-			} else if (ctx.ModAssign() != null) {
-				writer.append("&=");
-			} else if (ctx.PlusAssign() != null) {
-				writer.append("+=");
-			} else if (ctx.MinusAssign() != null) {
-				writer.append("-=");
-			} else if (ctx.RightShiftAssign() != null) {
-				writer.append(">>=");
-			} else if (ctx.LeftShiftAssign() != null) {
-				writer.append("<<=");
-			} else if (ctx.AndAssign() != null) {
-				writer.append("&=");
-			} else if (ctx.XorAssign() != null) {
-				writer.append("^=");
-			} else if (ctx.OrAssign() != null) {
-				writer.append("|=");
-			}
-		} catch (IOException e) {
-			System.out.print("Exception about primaryExpression");
+	public String visitAssignmentOperator(CParser.AssignmentOperatorContext ctx) {
+		StringBuilder result = new StringBuilder();
+		if (ctx.Assign() != null) {
+			result.append("=");
+		} else if (ctx.StarAssign() != null) {
+			result.append("*=");
+		} else if (ctx.DivAssign() != null) {
+			result.append("/=");
+		} else if (ctx.ModAssign() != null) {
+			result.append("&=");
+		} else if (ctx.PlusAssign() != null) {
+			result.append("+=");
+		} else if (ctx.MinusAssign() != null) {
+			result.append("-=");
+		} else if (ctx.RightShiftAssign() != null) {
+			result.append(">>=");
+		} else if (ctx.LeftShiftAssign() != null) {
+			result.append("<<=");
+		} else if (ctx.AndAssign() != null) {
+			result.append("&=");
+		} else if (ctx.XorAssign() != null) {
+			result.append("^=");
+		} else if (ctx.OrAssign() != null) {
+			result.append("|=");
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitExpression(CParser.ExpressionContext ctx) {
+	public String visitExpression(CParser.ExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.AssignmentExpressionContext i : ctx.assignmentExpression()) {
 			if (ctx.assignmentExpression().indexOf(i) != 0) {
-				try {
-					writer.append(", ");
-				} catch (IOException e) {
-					System.out.print("Exception about visitExpression");
-				}
+				result.append(", ");
 			}
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitConstantExpression(CParser.ConstantExpressionContext ctx) {
-		ctx.conditionalExpression().accept(this);
-		return 0;
+	public String visitConstantExpression(CParser.ConstantExpressionContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append(ctx.conditionalExpression().accept(this));
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
-		try {
-			writer.append("function ");
-			ctx.declarator().accept(this);
-			writer.append(" {\n");
-			ctx.compoundStatement().accept(this);
-			writer.append("}\n");
-		} catch (IOException e) {
-			System.out.print("Exception about FunctionDefinition");
-		}
-		return 0;
+	public String visitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append("function ");
+		result.append(ctx.declarator().accept(this));
+		result.append(" {\n");
+		result.append(ctx.compoundStatement().accept(this));
+		result.append("}\n");
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitStatementSeq(CParser.StatementSeqContext ctx) {
+	public String visitStatementSeq(CParser.StatementSeqContext ctx) {
+		StringBuilder result = new StringBuilder();
 		for (CParser.StatementContext i : ctx.statement()) {
-			i.accept(this);
+			result.append(i.accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	// 不用vistStatement函数去手动分发，其子类会自动调用重写函数
 
 	// ----------------------------------待完成------------------------------------
 	@Override
-	public Integer visitLabeledStatement(CParser.LabeledStatementContext ctx) {
-		return 0;
+	public String visitLabeledStatement(CParser.LabeledStatementContext ctx) {
+		StringBuilder result = new StringBuilder();
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitExpressionStatement(CParser.ExpressionStatementContext ctx) {
+	public String visitExpressionStatement(CParser.ExpressionStatementContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.expression() != null) {
-			ctx.expression().accept(this);
+			result.append(ctx.expression().accept(this));
 		}
-		try {
-			writer.append(";\n");
-		} catch (IOException e) {
-			System.out.print("Exception about expressionStatement");
-		}
-		return 0;
+		result.append(";\n");
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitCompoundStatement(CParser.CompoundStatementContext ctx) {
+	public String visitCompoundStatement(CParser.CompoundStatementContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.statementSeq() != null) {
-			ctx.statementSeq().accept(this);
+			result.append(ctx.statementSeq().accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitSelectionStatement(CParser.SelectionStatementContext ctx) {
+	public String visitSelectionStatement(CParser.SelectionStatementContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.If() != null) {
-			try {
-				writer.append("if (");
-				ctx.condition().accept(this);
-				writer.append(")\n");
-				writer.append("{\n");
-				ctx.statement(0).accept(this);
-				writer.append("}\n");
-				if (ctx.Else() != null) {
-					writer.append("else\n");
-					writer.append("{\n");
-					ctx.statement(1).accept(this);
-					writer.append("}\n");
-				}
-			} catch (IOException e) {
-				System.out.print("Exception about visitSelectionStatement");
+			result.append("if (");
+			result.append(ctx.condition().accept(this));
+			result.append(")\n");
+			result.append("{\n");
+			result.append(ctx.statement(0).accept(this));
+			result.append("}\n");
+			if (ctx.Else() != null) {
+				result.append("else\n");
+				result.append("{\n");
+				result.append(ctx.statement(1).accept(this));
+				result.append("}\n");
 			}
 			// if
 		} else {
 			// switch
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitIterationStatement(CParser.IterationStatementContext ctx) {
+	public String visitIterationStatement(CParser.IterationStatementContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.Do() != null) {
 			// do while
 		} else if (ctx.For() != null) {
 			// for
-			try {
-				writer.append("for (");
-				ctx.forInitStatement().accept(this);
-				writer.append(";\n");
-				ctx.condition().accept(this);
-				writer.append(";\n");
-				ctx.expression().accept(this);
-				writer.append(")\n");
-				writer.append("{\n");
-				ctx.statement().accept(this);
-				writer.append("}\n");
-			} catch (IOException e) {
-				System.out.print("Exception about visitIterationStatement");
-			}
+			result.append("for (");
+			result.append(ctx.forInitStatement().accept(this));
+			result.append(";\n");
+			result.append(ctx.condition().accept(this));
+			result.append(";\n");
+			result.append(ctx.expression().accept(this));
+			result.append(")\n");
+			result.append("{\n");
+			result.append(ctx.statement().accept(this));
+			result.append("}\n");
 		} else {
 			// while
-			try {
-				writer.append("while (");
-				ctx.condition().accept(this);
-				writer.append(")\n");
-				writer.append("{\n");
-				ctx.statement().accept(this);
-				writer.append("}\n");
-			} catch (IOException e) {
-				System.out.print("Exception about visitIterationStatement");
-			}
+			result.append("while (");
+			result.append(ctx.condition().accept(this));
+			result.append(")\n");
+			result.append("{\n");
+			result.append(ctx.statement().accept(this));
+			result.append("}\n");
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitForInitStatement(CParser.ForInitStatementContext ctx) {
+	public String visitForInitStatement(CParser.ForInitStatementContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.expressionStatement() != null) {
-			ctx.expressionStatement().accept(this);
+			result.append(ctx.expressionStatement().accept(this));
 		} else if (ctx.simpleDeclaration() != null) {
-			ctx.simpleDeclaration().accept(this);
+			result.append(ctx.simpleDeclaration().accept(this));
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitJumpStatement(CParser.JumpStatementContext ctx) {
+	public String visitJumpStatement(CParser.JumpStatementContext ctx) {
+		StringBuilder result = new StringBuilder();
 		if (ctx.Break() != null) {
 			// break;
-			try {
-				writer.append("break;\n");
-			} catch (IOException e) {
-				System.out.print("Exception about visitJumpStatement");
-			}
+			result.append("break;\n");
 		} else if (ctx.Continue() != null) {
 			// continue
-			try {
-				writer.append("continue;\n");
-			} catch (IOException e) {
-				System.out.print("Exception about visitJumpStatement");
-			}
+			result.append("continue;\n");
 		} else if (ctx.Return() != null) {
 			// return
-			try {
-				writer.append("return ");
-				if (ctx.expression() != null) ctx.expression().accept(this);
-				else if (ctx.bracedInitList() != null) ctx.bracedInitList().accept(this);
-				writer.append(";\n");
-			} catch (IOException e) {
-				System.out.print("Exception about visitJumpStatement");
-			}
+			result.append("return ");
+			if (ctx.expression() != null) result.append(ctx.expression().accept(this));
+			else if (ctx.bracedInitList() != null) result.append(ctx.bracedInitList().accept(this));
+			result.append(";\n");
 		}
-		return 0;
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitDeclarationStatement(CParser.DeclarationStatementContext ctx) {
-		ctx.simpleDeclaration().accept(this);
-		return 0;
+	public String visitDeclarationStatement(CParser.DeclarationStatementContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append(ctx.simpleDeclaration().accept(this));
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitCondition(CParser.ConditionContext ctx) {
-		ctx.expression().accept(this);
-		return 0;
+	public String visitCondition(CParser.ConditionContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append(ctx.expression().accept(this));
+		return result.toString();
 	}
 
 	@Override
-	public Integer visitLiteral(CParser.LiteralContext ctx) {
-		try {
-			writer.append(ctx.getText());
-		} catch (IOException e) {
-			System.out.print("Exception about literal");
-		}
-		return 0;
+	public String visitLiteral(CParser.LiteralContext ctx) {
+		StringBuilder result = new StringBuilder();
+		result.append(ctx.getText());
+		return result.toString();
 	}
 }
 
