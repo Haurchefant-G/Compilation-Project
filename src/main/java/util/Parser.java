@@ -131,7 +131,7 @@ public class Parser extends CParserBaseVisitor<String> {
 //                    ctx.constantExpression().accept(this);
 //                }
 //                writer.append("] ");
-				result.append(" = new Array()");
+				result.append(" = []");
 			}
 		}
 		return result.toString();
@@ -217,7 +217,7 @@ public class Parser extends CParserBaseVisitor<String> {
 	@Override
 	public String visitInitializer(CParser.InitializerContext ctx) {
 		StringBuilder result = new StringBuilder();
-		result.append("= ");
+		result.append(" = ");
 		result.append(ctx.initializerClause().accept(this));
 		return result.toString();
 	}
@@ -384,10 +384,10 @@ public class Parser extends CParserBaseVisitor<String> {
 		StringBuilder result = new StringBuilder();
 		for (CParser.MultiplicativeExpressionContext i : ctx.multiplicativeExpression()) {
 			if (ctx.multiplicativeExpression().indexOf(i) != 0) {
-				if (ctx.Plus() != null) {
-					result.append("+");
-				} else if (ctx.Minus() != null) {
-					result.append("-");
+				if (!ctx.Plus().isEmpty()) {
+					result.append(" + ");
+				} else if (!ctx.Minus().isEmpty()) {
+					result.append(" - ");
 				}
 			}
 			result.append(i.accept(this));

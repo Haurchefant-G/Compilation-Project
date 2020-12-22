@@ -1,13 +1,10 @@
-int strlen(char* s);
 int printf(char *format,...);
-int scanf(char *format,...);
 
-char t[10000];
+char t[1000] = "abcba";
+int length_t = 5;
 
 int main()
 {
-    scanf("%s", t);
-    int length_t = strlen(t);
     int first = 0, last = length_t - 1;
     int is_palin = 1;
     while(first < last)
