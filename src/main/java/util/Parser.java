@@ -63,9 +63,17 @@ public class Parser extends CParserBaseVisitor<String> {
 	@Override
 	public String visitSimpleDeclaration(CParser.SimpleDeclarationContext ctx) {
 		StringBuilder result = new StringBuilder();
+		// JavaScript中没有函数声明
+		CParser.NoPointerDeclaratorContext tempContext = ctx.initDeclaratorList().initDeclarator(0).declarator().noPointerDeclarator();
+		if (tempContext.noPointerDeclarator() != null) {
+			tempContext = tempContext.noPointerDeclarator();
+			String identifierText = tempContext.declaratorid().Identifier().getText();
+			if (identifierText.equals("printf") || identifierText.equals("strlen")) {
+				return "";
+			}
+		}
 		// --------------------所有的simpleTypeSpecifier都转为let------------------
 		if (ctx.simpleTypeSpecifier() != null) {
-			// JavaScript中没有函数声明
 			result.append("let ");
 		}
 		if (ctx.initDeclaratorList() != null) {
@@ -267,7 +275,7 @@ public class Parser extends CParserBaseVisitor<String> {
 					result.append("prompt");
 					break;
 				case "strlen":
-					// todo: 如何变为后置.length的形式？
+					// todo: 考虑如何变为后置.length的形式？
 					result.append(functionName);
 					break;
 				default:
