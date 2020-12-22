@@ -10,7 +10,7 @@ import java.io.IOException;
 public class compiler {
 
     public static void main(String[] args) {
-
+//        args[0] = "src/main/resources/CFiles/testPalindromic.c";
         Parser parser = new Parser();
         CharStream input = null;
         try {
