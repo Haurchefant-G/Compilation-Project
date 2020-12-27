@@ -205,10 +205,11 @@ public class Parser extends CParserBaseVisitor<String> {
 	@Override
 	public String visitParameterDeclaration(CParser.ParameterDeclarationContext ctx) {
 		StringBuilder result = new StringBuilder();
-		result.append(ctx.simpleTypeSpecifier().accept(this));
+		// JavaScript中不需要指定函数参数的类型
+		ctx.simpleTypeSpecifier().accept(this);
 		result.append(ctx.declarator().accept(this));
 		if (ctx.Assign() != null) {
-			result.append("= ");
+			result.append(" = ");
 			result.append(ctx.initializerClause().accept(this));
 		}
 		return result.toString();
@@ -237,17 +238,22 @@ public class Parser extends CParserBaseVisitor<String> {
 	public String visitInitializerList(CParser.InitializerListContext ctx) {
 		StringBuilder result = new StringBuilder();
 		for (CParser.InitializerClauseContext i : ctx.initializerClause()) {
-			if (ctx.initializerClause().indexOf(i) != 0) {
-				String firstLiteral = ctx.initializerClause().get(0).assignmentExpression().conditionalExpression()
-						.logicalOrExpression().logicalAndExpression(0).equalityExpression(0)
-						.relationalExpression(0).shiftExpression(0).additiveExpression(0)
-						.multiplicativeExpression(0).unaryExpression(0).postfixExpression()
-						.primaryExpression().literal().getText();
-				if (!firstLiteral.equals("\"%d\\n\"")) {
-					result.append(", ");
+			try {
+				if (ctx.initializerClause().indexOf(i) != 0) {
+					String firstLiteral = ctx.initializerClause().get(0).assignmentExpression().conditionalExpression()
+							.logicalOrExpression().logicalAndExpression(0).equalityExpression(0)
+							.relationalExpression(0).shiftExpression(0).additiveExpression(0)
+							.multiplicativeExpression(0).unaryExpression(0).postfixExpression()
+							.primaryExpression().literal().getText();
+					if (!firstLiteral.equals("\"%d\\n\"")) {
+						result.append(", ");
+					}
 				}
+				result.append(i.accept(this));
+			} catch (NullPointerException ignored) {
+				result.append(", ");
+				result.append(i.accept(this));
 			}
-			result.append(i.accept(this));
 		}
 		return result.toString();
 	}
@@ -372,11 +378,11 @@ public class Parser extends CParserBaseVisitor<String> {
 		StringBuilder result = new StringBuilder();
 		for (CParser.UnaryExpressionContext i : ctx.unaryExpression()) {
 			if (ctx.unaryExpression().indexOf(i) != 0) {
-				if (ctx.Star() != null) {
+				if (!ctx.Star().isEmpty()) {
 					result.append("*");
-				} else if (ctx.Div() != null) {
+				} else if (!ctx.Div().isEmpty()) {
 					result.append("/");
-				} else if (ctx.Mod() != null) {
+				} else if (!ctx.Mod().isEmpty()) {
 					result.append("%");
 				}
 			}
@@ -451,9 +457,9 @@ public class Parser extends CParserBaseVisitor<String> {
 		StringBuilder result = new StringBuilder();
 		for (CParser.RelationalExpressionContext i : ctx.relationalExpression()) {
 			if (ctx.relationalExpression().indexOf(i) != 0) {
-				if (ctx.Equal() != null) {
+				if (!ctx.Equal().isEmpty()) {
 					result.append(" == ");
-				} else if (ctx.NotEqual() != null) {
+				} else if (!ctx.NotEqual().isEmpty()) {
 					result.append(" != ");
 				}
 			}
