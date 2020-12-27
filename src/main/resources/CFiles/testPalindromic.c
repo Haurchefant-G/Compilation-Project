@@ -1,27 +1,24 @@
-int printf(char *format,...);
+int printf(char *format, ...);
 
-char t[1000] = "abcba";
+char input[] = "abcba";
 int length_t = 5;
 
-int main()
-{
+int main() {
     int first = 0, last = length_t - 1;
-    int is_palin = 1;
-    while(first < last)
-    {
-        if(t[first] == t[last])
-        {
+    int isPalindromic = 1;
+    while (first < last) {
+        if (input[first] == input[last]) {
             ++first;
             --last;
-        }else{
-            is_palin = 0;
+        } else {
+            isPalindromic = 0;
             break;
         }
     }
-    if(is_palin)
-    {
-        printf("wow, it is palindromic!\n");
-    }else{
-        printf("oops, it is not palindromic!\n");
+
+    if (isPalindromic) {
+        printf("The given text is palindromic.\n");
+    } else {
+        printf("The given text is not palindromic.\n");
     }
 }

@@ -238,7 +238,14 @@ public class Parser extends CParserBaseVisitor<String> {
 		StringBuilder result = new StringBuilder();
 		for (CParser.InitializerClauseContext i : ctx.initializerClause()) {
 			if (ctx.initializerClause().indexOf(i) != 0) {
-				result.append(", ");
+				String firstLiteral = ctx.initializerClause().get(0).assignmentExpression().conditionalExpression()
+						.logicalOrExpression().logicalAndExpression(0).equalityExpression(0)
+						.relationalExpression(0).shiftExpression(0).additiveExpression(0)
+						.multiplicativeExpression(0).unaryExpression(0).postfixExpression()
+						.primaryExpression().literal().getText();
+				if (!firstLiteral.equals("\"%d\\n\"")) {
+					result.append(", ");
+				}
 			}
 			result.append(i.accept(this));
 		}
@@ -296,7 +303,7 @@ public class Parser extends CParserBaseVisitor<String> {
 			if (ctx.LeftBracket() != null) {
 				result.append("[");
 				result.append(ctx.expression().accept(this));
-				result.append("] ");
+				result.append("]");
 			} else if (ctx.LeftParen() != null) {
 				result.append("(");
 				if (ctx.expressionList() != null) {
@@ -331,7 +338,6 @@ public class Parser extends CParserBaseVisitor<String> {
 				result.append("--");
 			} else if (ctx.Sizeof() != null) {
 				// -----------------------sizeof对应什么？---------------------
-				result.append("");
 			} else if (ctx.unaryOperator() != null) {
 				result.append(ctx.unaryOperator().accept(this));
 			}
@@ -413,9 +419,9 @@ public class Parser extends CParserBaseVisitor<String> {
 	public String visitShiftOperator(CParser.ShiftOperatorContext ctx) {
 		StringBuilder result = new StringBuilder();
 		if (ctx.Greater() != null) {
-			result.append(">> ");
+			result.append(" >> ");
 		} else if (ctx.Less() != null) {
-			result.append("<< ");
+			result.append(" << ");
 		}
 		return result.toString();
 	}
@@ -426,13 +432,13 @@ public class Parser extends CParserBaseVisitor<String> {
 		for (CParser.ShiftExpressionContext i : ctx.shiftExpression()) {
 			if (ctx.shiftExpression().indexOf(i) != 0) {
 				if (ctx.Less() != null) {
-					result.append("< ");
+					result.append(" < ");
 				} else if (ctx.Greater() != null) {
-					result.append("> ");
+					result.append(" > ");
 				} else if (ctx.LessEqual() != null) {
-					result.append("<= ");
+					result.append(" <= ");
 				} else if (ctx.GreaterEqual() != null) {
-					result.append(">= ");
+					result.append(" >= ");
 				}
 			}
 			result.append(i.accept(this));
@@ -446,9 +452,9 @@ public class Parser extends CParserBaseVisitor<String> {
 		for (CParser.RelationalExpressionContext i : ctx.relationalExpression()) {
 			if (ctx.relationalExpression().indexOf(i) != 0) {
 				if (ctx.Equal() != null) {
-					result.append("== ");
+					result.append(" == ");
 				} else if (ctx.NotEqual() != null) {
-					result.append("!= ");
+					result.append(" != ");
 				}
 			}
 			result.append(i.accept(this));
@@ -461,7 +467,7 @@ public class Parser extends CParserBaseVisitor<String> {
 		StringBuilder result = new StringBuilder();
 		for (CParser.EqualityExpressionContext i : ctx.equalityExpression()) {
 			if (ctx.equalityExpression().indexOf(i) != 0) {
-				result.append("&& ");
+				result.append(" && ");
 			}
 			result.append(i.accept(this));
 		}
@@ -473,7 +479,7 @@ public class Parser extends CParserBaseVisitor<String> {
 		StringBuilder result = new StringBuilder();
 		for (CParser.LogicalAndExpressionContext i : ctx.logicalAndExpression()) {
 			if (ctx.logicalAndExpression().indexOf(i) != 0) {
-				result.append("|| ");
+				result.append(" || ");
 			}
 			result.append(i.accept(this));
 		}
@@ -486,9 +492,9 @@ public class Parser extends CParserBaseVisitor<String> {
 		result.append(ctx.logicalOrExpression().accept(this));
 		if (ctx.Question() != null) {
 			// ------------------三元表达式--------------------
-			result.append("? ");
+			result.append(" ? ");
 			result.append(ctx.expression().accept(this));
-			result.append(": ");
+			result.append(" : ");
 			result.append(ctx.assignmentExpression().accept(this));
 		}
 		return result.toString();
@@ -635,7 +641,7 @@ public class Parser extends CParserBaseVisitor<String> {
 			// for
 			result.append("for (");
 			result.append(ctx.forInitStatement().accept(this));
-			result.append(";\n");
+//			result.append(";\n");
 			result.append(ctx.condition().accept(this));
 			result.append(";\n");
 			result.append(ctx.expression().accept(this));
@@ -702,7 +708,10 @@ public class Parser extends CParserBaseVisitor<String> {
 	@Override
 	public String visitLiteral(CParser.LiteralContext ctx) {
 		StringBuilder result = new StringBuilder();
-		result.append(ctx.getText());
+		if (!ctx.getText().equals("\"%d\\n\"")) {
+			// 删除流控制符
+			result.append(ctx.getText());
+		}
 		return result.toString();
 	}
 }

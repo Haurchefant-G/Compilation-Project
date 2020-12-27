@@ -1,76 +1,53 @@
-int printf(char *format,...);
-int strlen(char * s);
-int scanf(char *format,...);
+int printf(char *format, ...);
 
 char s[] = "abcdefgabdef";
 char t[] = "ab";
+int lengthS = 12;
+int lengthT = 2;
 
 int next[1000];
 
-void computeNext()
-{
-    int length_t = strlen(t);
-    int index_t = 0;
-    next[index_t] = 0;
-    for(int index_moving = 1; index_moving < length_t + 1; ++index_moving)
-    {
-        while(index_moving < length_t && index_t < length_t && t[index_moving] == t[index_t])
-        {
-            ++index_t;
-            ++index_moving;
-            next[index_moving] = index_t;
+void computeNext() {
+    int indexT = 0;
+    next[indexT] = 0;
+    for (int indexMoving = 1; indexMoving < lengthT + 1; ++indexMoving) {
+        while (indexMoving < lengthT && indexT < lengthT && t[indexMoving] == t[indexT]) {
+            ++indexT;
+            ++indexMoving;
+            next[indexMoving] = indexT;
         }
-        if(index_moving == length_t)
-        {
-            next[index_moving] = index_t;
+        if (indexMoving == lengthT) {
+            next[indexMoving] = indexT;
             break;
         }
-        if(t[index_moving] != t[index_t])
-        {
-            while(index_t != 0 && t[index_moving] != t[index_t])
-            {
-                index_t = next[index_t];
+        if (t[indexMoving] != t[indexT]) {
+            while (indexT != 0 && t[indexMoving] != t[indexT]) {
+                indexT = next[indexT];
             }
-            next[index_moving] = index_t;
+            next[indexMoving] = indexT;
             continue;
         }
     }
 }
 
-int main()
-{
-    scanf("%s", s);
-    scanf("%s", t);
+int main() {
     computeNext();
-    int length_s = strlen(s);
-    int length_t = strlen(t);
-    if(length_t == 0)
-    {
-        printf("empty template string!\n");
-        return 0;
-    }
-    int index_t = 0;
-    for(int index_s = 0; index_s < length_s; )
-    {
-        while(index_s < length_s && index_t < length_t && s[index_s] == t[index_t])
-        {
-            ++index_t;
-            ++index_s;
+    int indexT = 0;
+    for (int indexS = 0; indexS < lengthS; ++indexS) {
+        while (indexS < lengthS && indexT < lengthT && s[indexS] == t[indexT]) {
+            ++indexT;
+            ++indexS;
         }
-        if(index_t == length_t)
-        {
-            printf("%d\n", index_s - length_t);
-            index_t = next[index_t];
+        if (indexT == lengthT) {
+            printf("%d\n", indexS - lengthT);
+            indexT = next[indexT];
             continue;
         }
-        if(index_s == length_s)
-        {
+        if (indexS == lengthS) {
             break;
         }
-        while(index_t != 0 && s[index_s] != t[index_t])
-        {
-            index_t = next[index_t];
+        while (indexT != 0 && s[indexS] != t[indexT]) {
+            indexT = next[indexT];
         }
-        ++index_s;
     }
 }

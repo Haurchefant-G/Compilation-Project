@@ -1,4 +1,4 @@
-// Generated from D:/repository/Compilation-Project/src/main/java/parser\CParser.g4 by ANTLR 4.9
+// Generated from /Users/haoyuniu/OneDrive/Assignment/2020秋 大四上/汇编与编译原理/编译大作业/Compilation-Project/src/main/java/parser/CParser.g4 by ANTLR 4.9
 package parser;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
