@@ -20,11 +20,16 @@ public class Parser extends CParserBaseVisitor<String> {
 	int tabnum = 0;
 	Vector<Set> variable = new Vector<Set>();
 
+	String filename = "result.js";
+
+	public void setOutputFilename(String name) {
+		filename = name + ".js";
+	}
 
 	@Override
 	public String visitTranslationUnit(CParser.TranslationUnitContext ctx) {
 		try {
-			f = new File("results.js");
+			f = new File(filename);
 			fop = new FileOutputStream(f);
 			writer = new OutputStreamWriter(fop, StandardCharsets.UTF_8);
 			Set tmp = new HashSet();
@@ -80,7 +85,7 @@ public class Parser extends CParserBaseVisitor<String> {
 		if (tempContext.noPointerDeclarator() != null) {
 			tempContext = tempContext.noPointerDeclarator();
 			String identifierText = tempContext.declaratorid().Identifier().getText();
-			if (identifierText.equals("printf") || identifierText.equals("strlen")) {
+			if (identifierText.equals("printf") || identifierText.equals("scanf") || identifierText.equals("strlen")) {
 				return "";
 			}
 		}
@@ -152,18 +157,6 @@ public class Parser extends CParserBaseVisitor<String> {
 	@Override
 	public String visitPointerOperator(CParser.PointerOperatorContext ctx) {
 		StringBuilder result = new StringBuilder();
-//        try {
-//            if (ctx.And() != null)
-//            {
-//                writer.append("&");
-//            }
-//            else if (ctx.Star() != null)
-//            {
-//                writer.append("*");
-//            }
-//        }catch (IOException e){
-//            System.out.print("Exception about pointerOperator");
-//        }
 		return result.toString();
 	}
 
@@ -336,21 +329,35 @@ public class Parser extends CParserBaseVisitor<String> {
 		if (ctx.primaryExpression() != null) {
 			result.append(ctx.primaryExpression().accept(this));
 		} else {
-			result.append(ctx.postfixExpression().accept(this));
-			if (ctx.LeftBracket() != null) {
-				result.append("[");
-				result.append(ctx.expression().accept(this));
-				result.append("]");
-			} else if (ctx.LeftParen() != null) {
-				result.append("(");
-				if (ctx.expressionList() != null) {
-					result.append(ctx.expressionList().accept(this));
-				}
-				result.append(")");
-			} else if (ctx.PlusPlus() != null) {
-				result.append("++");
-			} else if (ctx.MinusMinus() != null) {
-				result.append("--");
+			String postfix = ctx.postfixExpression().getText();
+			String param;
+			switch(postfix) {
+				case "scanf":
+					param = ctx.expressionList().initializerList().initializerClause(1).getText();
+					result.append(param + "=prompt()");
+					break;
+				case "strlen":
+					param = ctx.expressionList().initializerList().initializerClause(0).getText();
+					result.append(param + ".length");
+					break;
+				default:
+					result.append(ctx.postfixExpression().accept(this));
+					if (ctx.LeftBracket() != null) {
+						result.append("[");
+						result.append(ctx.expression().accept(this));
+						result.append("]");
+					} else if (ctx.LeftParen() != null) {
+						result.append("(");
+						if (ctx.expressionList() != null) {
+							result.append(ctx.expressionList().accept(this));
+						}
+						result.append(")");
+					} else if (ctx.PlusPlus() != null) {
+						result.append("++");
+					} else if (ctx.MinusMinus() != null) {
+						result.append("--");
+					}
+					break;
 			}
 		}
 		return result.toString();

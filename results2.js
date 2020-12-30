@@ -107,6 +107,7 @@ function main() {
 	let i = 0;
 	let tmp = 0;
 	let j;
+	str=prompt();
 	while (stackEmpty(operatorStack) != 1 || i < lengthStr)
 	{
 		if (str[i] >= '0' && str[i] <= '9')

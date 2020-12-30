@@ -25,3 +25,4 @@ hs_err_pid*
 src/main/java/parser/temp
 target/
 src/main/resources/Cexamples/
+.vscode/settings.json

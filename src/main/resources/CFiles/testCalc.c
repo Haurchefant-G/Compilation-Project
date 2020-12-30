@@ -1,162 +1,179 @@
 int printf(char *format, ...);
+int scanf(char *format, ...);
 
-int stackData[1000 * 2];
-int stackNo = 0;
+char str[];
+int len = 0;
 
-char str[] = "1+(5-2)*4/(2+1)";
-int lengthStr = 15;
+int data[1000 * 2];
+int stackIndex = 0;
 
-int initStack() {
-    if (stackNo >= 2) {
+int init()
+{
+    if (stackIndex < 0 || stackIndex >= 2)
+    {
         return -1;
     }
-    if (stackNo < 0) {
-        return -1;
-    }
-    int ans = stackNo;
-    ++stackNo;
-    stackData[1000 * ans] = 0;
+    int ans = stackIndex;
+    ++stackIndex;
+    data[1000 * ans] = 0;
     return ans;
 }
 
-void push(int stack, int tar) {
-    if (stack >= 2) {
-        return;
-    }
-    if (stack < 0) {
-        return;
-    }
-    int length = stackData[stack * 1000];
-    if (length < 0) {
-        return;
-    }
-    if (length >= 999) {
-        return;
-    }
-    stackData[stack * 1000 + length + 1] = tar;
-    stackData[stack * 1000] = length + 1;
-}
-
-int pop(int stack) {
-    if (stack >= 2) {
+int stacktop(int stack)
+{
+    if (stack < 0 || stack >= 2)
+    {
         return -1;
     }
-    if (stack < 0) {
-        return -1;
-    }
-    int length = stackData[stack * 1000];
-    if (length <= 0) {
+    int num = data[stack * 1000];
+    if (num <= 0)
+    {
         return 0;
     }
-    stackData[stack * 1000] = length - 1;
-    return stackData[stack * 1000 + length];
+    return data[stack * 1000 + num];
 }
 
-int stackEmpty(int stack) {
-    if (stack >= 2) {
+int empty(int stack)
+{
+    if (stack >= 2 || stack < 0)
+    {
         return -1;
     }
-    if (stack < 0) {
-        return -1;
-    }
-    int length = stackData[stack * 1000];
-    if (length == 0) {
+    if (data[stack * 1000] == 0)
+    {
         return 1;
     }
     return 0;
 }
 
-int getTop(int stack) {
-    if (stack >= 2) {
-        return -1;
+void push(int stack, int tar)
+{
+    if (stack >= 2 || stack < 0)
+    {
+        return;
     }
-    if (stack < 0) {
-        return -1;
+    int num = data[stack * 1000];
+    if (num >= 999 || num < 0)
+    {
+        return;
     }
-    int length = stackData[stack * 1000];
-    if (length <= 0) {
-        return 0;
-    }
-    return stackData[stack * 1000 + length];
+    ++num;
+    data[stack * 1000 + num] = tar;
+    data[stack * 1000] = num;
 }
 
-int Priority(int s) {
-    if (s == '(') {
+int pop(int stack)
+{
+    if (stack >= 2 || stack < 0)
+    {
+        return -1;
+    }
+    int num = data[stack * 1000];
+    if (num <= 0)
+    {
+        return 0;
+    }
+    data[stack * 1000] = num - 1;
+    return data[stack * 1000 + num];
+}
+
+int priority(int op)
+{
+    if (op == '(')
+    {
         return 3;
     }
-    if (s == '*' || s == '/') {
+    if (op == '*' || op == '/')
+    {
         return 2;
     }
-    if (s == '+' || s == '-') {
+    if (op == '+' || op == '-')
+    {
         return 1;
     }
     return 0;
 }
 
-int main() {
-    int numberStack = initStack();
-    int operatorStack = initStack();
-    int i = 0;
-    int tmp = 0;
-    int j;
+int main()
+{
+    int numstack = init();
+    int opstack = init();
 
-    while (stackEmpty(operatorStack) != 1 || i < lengthStr) {
-        if (str[i] >= '0' && str[i] <= '9') {
-            tmp = tmp * 10 + str[i];
-            tmp -= '0';
-            i = i + 1;
-            if (str[i] >= '0' && str[i] <= '9') {
+    scanf("%s", str);
+    len = strlen(str);
+
+    int i = 0;
+    int a;
+    int b;
+    int tmp = 0;
+    int calc = 0;
+
+    while (i < len || empty(opstack) != 1)
+    {
+        if (str[i] >= '0' && str[i] <= '9')
+        {
+            tmp = tmp * 10 + (str[i] - '0');
+            ++i;
+            if (str[i] >= '0' && str[i] <= '9')
+            {
                 continue;
-            } else {
-                push(numberStack, tmp);
+            }
+            else
+            {
+                push(numstack, tmp);
                 tmp = 0;
             }
-        } else {
-            if (stackEmpty(operatorStack) || Priority(str[i]) > Priority(getTop(operatorStack))) {
-                push(operatorStack, str[i]);
-                i = i + 1;
-                continue;
+        }
+        else
+        {
+            if (empty(opstack) || priority(str[i]) > priority(stacktop(opstack)))
+            {
+                push(opstack, str[i]);
+                ++i;
             }
-            if (getTop(operatorStack) == '(' && str[i] != ')') {
-                push(operatorStack, str[i]);
-                i = i + 1;
-                continue;
+            else if (stacktop(opstack) == '(' && str[i] != ')')
+            {
+                push(opstack, str[i]);
+                ++i;
             }
-            if (getTop(operatorStack) == '(' && str[i] == ')') {
-                pop(operatorStack);
-                i = i + 1;
-                continue;
+            else if (stacktop(opstack) == '(' && str[i] == ')')
+            {
+                pop(opstack);
+                ++i;
             }
-            int ok = 0;
-            if (stackEmpty(operatorStack) != 1 && str[i] == '\0') {
-                ok = 1;
-            }
-            if (str[i] == ')' && getTop(operatorStack) != '(') {
-                ok = 1;
-            }
-            if (Priority(str[i]) <= Priority(getTop(operatorStack))) {
-                ok = 1;
-            }
-            if (ok) {
-                int currentOperator = pop(operatorStack);
-                if (currentOperator == '+') {
-                    push(numberStack, pop(numberStack) + pop(numberStack));
+            else
+            {
+                calc = 0;
+                if ((empty(opstack) != 1 && str[i] == '\0') || (str[i] == ')' && stacktop(opstack) != '(') || (priority(str[i]) <= priority(stacktop(opstack))))
+                {
+                    calc = 1;
                 }
-                if (currentOperator == '-') {
-                    j = pop(numberStack);
-                    push(numberStack, pop(numberStack) - j);
-                }
-                if (currentOperator == '*') {
-                    push(numberStack, pop(numberStack) * pop(numberStack));
-                }
-                if (currentOperator == '/') {
-                    j = pop(numberStack);
-                    push(numberStack, pop(numberStack) / j);
+                if (calc)
+                {
+                    int op = pop(opstack);
+                    b = pop(numstack);
+                    a = pop(numstack);
+                    if (op == '+')
+                    {
+                        push(numstack, a + b);
+                    }
+                    if (op == '-')
+                    {
+                        push(numstack, a - b);
+                    }
+                    if (op == '*')
+                    {
+                        push(numstack, a * b);
+                    }
+                    if (op == '/')
+                    {
+                        push(numstack, a / b);
+                    }
                 }
             }
         }
     }
 
-    printf("%d\n", pop(numberStack));
+    printf("%d\n", pop(numstack));
     return 0;
 }

@@ -1,10 +1,10 @@
-int printf(char *format, ...);
-
-char input[] = "abcba";
-int length_t = 5;
 
 int main() {
-    int first = 0, last = length_t - 1;
+    char input[] = "qwertyuiopoiuytrewq";
+    int len;
+    scanf("%s", input);
+    len = strlen(input);
+    int first = 0, last = len - 1;
     int isPalindromic = 1;
     while (first < last) {
         if (input[first] == input[last]) {
@@ -17,8 +17,8 @@ int main() {
     }
 
     if (isPalindromic) {
-        printf("The given text is palindromic.\n");
+        printf("Input text is palindromic.\n");
     } else {
-        printf("The given text is not palindromic.\n");
+        printf("Input text is not palindromic.\n");
     }
 }

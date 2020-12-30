@@ -20,6 +20,7 @@ public class compiler {
         }
         if (input != null)
         {
+            parser.setOutputFilename(args[0]);
             CPPLexer cpplexer = new CPPLexer(input);
             CommonTokenStream token = new CommonTokenStream(cpplexer);
             CParser cparser = new CParser(token);
