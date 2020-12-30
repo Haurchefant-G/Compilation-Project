@@ -1,11 +1,8 @@
-int printf(char *format, ...);
-int scanf(char *format, ...);
+int data[1000 * 2];
+int stackIndex = 0;
 
 char str[];
 int len = 0;
-
-int data[1000 * 2];
-int stackIndex = 0;
 
 int init()
 {
@@ -106,7 +103,6 @@ int main()
     int a;
     int b;
     int tmp = 0;
-    int calc = 0;
 
     while (i < len || empty(opstack) != 1)
     {
@@ -130,25 +126,22 @@ int main()
             {
                 push(opstack, str[i]);
                 ++i;
+                continue;
             }
-            else if (stacktop(opstack) == '(' && str[i] != ')')
+            if (stacktop(opstack) == '(' && str[i] != ')')
             {
                 push(opstack, str[i]);
                 ++i;
+                continue;
             }
-            else if (stacktop(opstack) == '(' && str[i] == ')')
+            if (stacktop(opstack) == '(' && str[i] == ')')
             {
                 pop(opstack);
                 ++i;
             }
             else
             {
-                calc = 0;
                 if ((empty(opstack) != 1 && str[i] == '\0') || (str[i] == ')' && stacktop(opstack) != '(') || (priority(str[i]) <= priority(stacktop(opstack))))
-                {
-                    calc = 1;
-                }
-                if (calc)
                 {
                     int op = pop(opstack);
                     b = pop(numstack);

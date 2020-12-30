@@ -86,7 +86,6 @@ function main() {
 	let a;
 	let b;
 	let tmp = 0;
-	let calc = 0;
 	while (i < len || empty(opstack) != 1)
 	{
 		if (str[i] >= '0' && str[i] <= '9')
@@ -109,50 +108,41 @@ function main() {
 			{
 				push(opstack, str[i]);
 				++i;
+				continue;
+			}
+			if (stacktop(opstack) == '(' && str[i] != ')')
+			{
+				push(opstack, str[i]);
+				++i;
+				continue;
+			}
+			if (stacktop(opstack) == '(' && str[i] == ')')
+			{
+				pop(opstack);
+				++i;
 			}
 			else
 			{
-if (stacktop(opstack) == '(' && str[i] != ')')
+				if ((empty(opstack) != 1 && str[i] == '\0') || (str[i] == ')' && stacktop(opstack) != '(') || (priority(str[i]) <= priority(stacktop(opstack))))
 				{
-					push(opstack, str[i]);
-					++i;
-				}
-				else
-				{
-if (stacktop(opstack) == '(' && str[i] == ')')
+					let op = pop(opstack);
+					b=pop(numstack);
+					a=pop(numstack);
+					if (op == '+')
 					{
-						pop(opstack);
-						++i;
+						push(numstack, a + b);
 					}
-					else
+					if (op == '-')
 					{
-						calc=0;
-						if ((empty(opstack) != 1 && str[i] == '\0') || (str[i] == ')' && stacktop(opstack) != '(') || (priority(str[i]) <= priority(stacktop(opstack))))
-						{
-							calc=1;
-						}
-						if (calc)
-						{
-							let op = pop(opstack);
-							b=pop(numstack);
-							a=pop(numstack);
-							if (op == '+')
-							{
-								push(numstack, a + b);
-							}
-							if (op == '-')
-							{
-								push(numstack, a - b);
-							}
-							if (op == '*')
-							{
-								push(numstack, a*b);
-							}
-							if (op == '/')
-							{
-								push(numstack, a/b);
-							}
-						}
+						push(numstack, a - b);
+					}
+					if (op == '*')
+					{
+						push(numstack, a*b);
+					}
+					if (op == '/')
+					{
+						push(numstack, a/b);
 					}
 				}
 			}

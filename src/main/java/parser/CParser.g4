@@ -134,16 +134,6 @@ equalityExpression:
 		(Equal | NotEqual) relationalExpression
 	)*;
 
-// andExpression: equalityExpression (And equalityExpression)*;
-
-// exclusiveOrExpression: andExpression (Caret andExpression)*;
-
-// inclusiveOrExpression:
-// 	exclusiveOrExpression (Or exclusiveOrExpression)*;
-
-// logicalAndExpression:
-// 	inclusiveOrExpression (AndAnd inclusiveOrExpression)*;
-
 logicalAndExpression:
 	equalityExpression (AndAnd equalityExpression)*;
 
