@@ -8,12 +8,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Vector;
 
 // 重载CParserBaseVisitor中的函数
 public class Parser extends CParserBaseVisitor<String> {
 	File f;
 	FileOutputStream fop;
 	OutputStreamWriter writer;
+	int tabnum = 0;
+	Vector<Set> variable = new Vector<Set>();
+
 
 	@Override
 	public String visitTranslationUnit(CParser.TranslationUnitContext ctx) {
@@ -21,15 +27,21 @@ public class Parser extends CParserBaseVisitor<String> {
 			f = new File("results.js");
 			fop = new FileOutputStream(f);
 			writer = new OutputStreamWriter(fop, StandardCharsets.UTF_8);
+			Set tmp = new HashSet();
+			variable.add(tmp);
+			variable.get(tabnum).add("alert");
+			variable.get(tabnum).add("prompt");
+
 			String translatedText = ctx.declarationseq().accept(this);
 			writer.append(translatedText);
+
+			variable.remove(tabnum);
 			writer.append("main();\n");
 			writer.close();
 			fop.close();
 		} catch (IOException e) {
 			System.out.print("Exception");
 		}
-
 		return "";
 	}
 
@@ -163,6 +175,7 @@ public class Parser extends CParserBaseVisitor<String> {
 		} else if (ctx.Identifier().getText().equals("scanf")) {
 			result.append("prompt");
 		} else {
+			variable.get(tabnum).add(ctx.Identifier().getText());
 			result.append(ctx.Identifier().getText());
 		}
 		return result.toString();
@@ -292,7 +305,25 @@ public class Parser extends CParserBaseVisitor<String> {
 					result.append(functionName);
 					break;
 				default:
-					result.append(functionName);
+					try{
+						boolean declared = false;
+						for(int i = 0; i <= tabnum; i++)
+						{
+							if(variable.get(i).contains(functionName))
+							{
+								declared = true;
+								result.append(functionName);
+								break;
+							}
+						}
+						if(!declared)
+						{
+							ArrayIndexOutOfBoundsException  exception = new ArrayIndexOutOfBoundsException();
+							throw exception;
+						}
+					}catch(ArrayIndexOutOfBoundsException e){
+						System.out.println("错误！未定义的变量使用。\n");
+					}
 					break;
 			}
 		}
@@ -573,7 +604,18 @@ public class Parser extends CParserBaseVisitor<String> {
 		result.append("function ");
 		result.append(ctx.declarator().accept(this));
 		result.append(" {\n");
+		tabnum++;
+		if(variable.size() < tabnum+1)
+		{
+			Set tmp = new HashSet();
+			variable.add(tmp);
+		}
 		result.append(ctx.compoundStatement().accept(this));
+		if(variable.size() < tabnum+1)
+		{
+			variable.remove(tabnum);
+		}
+		tabnum--;
 		result.append("}\n");
 		return result.toString();
 	}
@@ -582,6 +624,7 @@ public class Parser extends CParserBaseVisitor<String> {
 	public String visitStatementSeq(CParser.StatementSeqContext ctx) {
 		StringBuilder result = new StringBuilder();
 		for (CParser.StatementContext i : ctx.statement()) {
+			for(int j = 0; j < tabnum; j++)	result.append("\t");
 			result.append(i.accept(this));
 		}
 		return result.toString();
@@ -589,7 +632,6 @@ public class Parser extends CParserBaseVisitor<String> {
 
 	// 不用vistStatement函数去手动分发，其子类会自动调用重写函数
 
-	// ----------------------------------待完成------------------------------------
 	@Override
 	public String visitLabeledStatement(CParser.LabeledStatementContext ctx) {
 		StringBuilder result = new StringBuilder();
@@ -619,19 +661,35 @@ public class Parser extends CParserBaseVisitor<String> {
 	public String visitSelectionStatement(CParser.SelectionStatementContext ctx) {
 		StringBuilder result = new StringBuilder();
 		if (ctx.If() != null) {
+			// if
+			tabnum++;
+			if(variable.size() < tabnum+1)
+			{
+				Set tmp = new HashSet();
+				variable.add(tmp);
+			}
 			result.append("if (");
 			result.append(ctx.condition().accept(this));
 			result.append(")\n");
+			for(int i = 0; i < tabnum-1; i++)	result.append("\t");
 			result.append("{\n");
 			result.append(ctx.statement(0).accept(this));
+			for(int i = 0; i < tabnum-1; i++)	result.append("\t");
 			result.append("}\n");
 			if (ctx.Else() != null) {
+				for(int i = 0; i < tabnum-1; i++)	result.append("\t");
 				result.append("else\n");
+				for(int i = 0; i < tabnum-1; i++)	result.append("\t");
 				result.append("{\n");
 				result.append(ctx.statement(1).accept(this));
+				for(int i = 0; i < tabnum-1; i++)	result.append("\t");
 				result.append("}\n");
 			}
-			// if
+			if(variable.size() < tabnum+1)
+			{
+				variable.remove(tabnum);
+			}
+			tabnum--;
 		} else {
 			// switch
 		}
@@ -645,24 +703,51 @@ public class Parser extends CParserBaseVisitor<String> {
 			// do while
 		} else if (ctx.For() != null) {
 			// for
+			tabnum++;
+			if(variable.size() < tabnum+1)
+			{
+				Set tmp = new HashSet();
+				variable.add(tmp);
+			}
 			result.append("for (");
 			result.append(ctx.forInitStatement().accept(this));
-//			result.append(";\n");
+			result.deleteCharAt(result.length()-1);
+			result.append(" ");
 			result.append(ctx.condition().accept(this));
-			result.append(";\n");
+			result.append("; ");
 			result.append(ctx.expression().accept(this));
 			result.append(")\n");
+			for(int i = 0; i < tabnum-1; i++)	result.append("\t");
 			result.append("{\n");
 			result.append(ctx.statement().accept(this));
+			for(int i = 0; i < tabnum-1; i++)	result.append("\t");
 			result.append("}\n");
+			if(variable.size() < tabnum+1)
+			{
+				variable.remove(tabnum);
+			}
+			tabnum--;
 		} else {
 			// while
+			tabnum++;
+			if(variable.size() < tabnum+1)
+			{
+				Set tmp = new HashSet();
+				variable.add(tmp);
+			}
 			result.append("while (");
 			result.append(ctx.condition().accept(this));
 			result.append(")\n");
+			for(int i = 0; i < tabnum-1; i++)	result.append("\t");
 			result.append("{\n");
 			result.append(ctx.statement().accept(this));
+			for(int i = 0; i < tabnum-1; i++)	result.append("\t");
 			result.append("}\n");
+			if(variable.size() < tabnum+1)
+			{
+				variable.remove(tabnum);
+			}
+			tabnum--;
 		}
 		return result.toString();
 	}
@@ -721,4 +806,3 @@ public class Parser extends CParserBaseVisitor<String> {
 		return result.toString();
 	}
 }
-
